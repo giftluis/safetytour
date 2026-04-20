@@ -1,0 +1,3 @@
+[submodule "mobile_expo"]
+	path = mobile_expo
+	url = https://github.com/giftluis/safetytour-mobile-expo.git

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+
+        body {
+            font-family: Helvetica, sans-serif;
+            font-size: 10pt;
+            color: #333;
+        }
+
+        h1 {
+            color: #d32f2f;
+            font-size: 18pt;
+            border-bottom: 2px solid #d32f2f;
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 14pt;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            background-color: #f5f5f5;
+            padding: 5px;
+            border-left: 5px solid #d32f2f;
+        }
+
+        h3 {
+            font-size: 12pt;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            color: #444;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #eee;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .meta-table th {
+            width: 20%;
+        }
+
+        .obs-container {
+            page-break-inside: avoid;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 15px;
+            background-color: #fff;
+        }
+
+        .obs-text {
+            margin-bottom: 10px;
+        }
+
+        .obs-images {
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .obs-img-container {
+            display: inline-block;
+            width: 30%;
+            margin-right: 2%;
+            vertical-align: top;
+            margin-bottom: 10px;
+        }
+
+        .obs-img {
+            width: 100%;
+            height: auto;
+            max-height: 200px;
+            border: 1px solid #ccc;
+            object-fit: cover;
+        }
+
+        .actions-section {
+            margin-top: 10px;
+            background-color: #fafafa;
+            padding: 5px;
+            border-top: 1px dotted #ccc;
+        }
+
+        .action-item {
+            margin-bottom: 5px;
+            font-size: 9pt;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 8pt;
+            color: #999;
+            text-align: center;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: white;
+            font-size: 8pt;
+        }
+
+        .badge-SP {
+            background-color: #2e7d32;
+        }
+
+        .badge-RB {
+            background-color: #f57c00;
+        }
+
+        .badge-RC {
+            background-color: #c62828;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="text-align: right; margin-bottom: 20px;">
+        <img src="vodafone_logo.png" width="100" />
+    </div>
+    <h1>Safety Tour Report: {{ visit.visit_no }}</h1>
+
+    <table class="meta-table">
+        <tr>
+            <th>Date</th>
+            <td>{{ visit.visit_datetime|date:"Y-m-d H:i" }}</td>
+            <th>Area</th>
+            <td>{{ visit.visited_area }}</td>
+        </tr>
+        <tr>
+            <th>Manager</th>
+            <td>{{ visit.manager_name }}</td>
+            <th>Status</th>
+            <td>{{ visit.get_status_display }}</td>
+        </tr>
+        <tr>
+            <th>Theme</th>
+            <td>{{ visit.theme|default:"-" }}</td>
+            <th>Category</th>
+            <td>{{ visit.area_category }}</td>
+        </tr>
+    </table>
+
+    <h3>Preparation Checklist</h3>
+    <table class="meta-table">
+        <tr>
+            <td style="width: 10%; text-align: center;">{% if visit.prep_previous_read %}<span
+                    style="color: #2e7d32; font-size: 12pt;">&#10004;</span>{% endif %}</td>
+            <td style="width: 40%;">Understand the work activity and its potential hazards.</td>
+            <td style="width: 10%; text-align: center;">{% if visit.prep_scope_defined %}<span
+                    style="color: #2e7d32; font-size: 12pt;">&#10004;</span>{% endif %}</td>
+            <td style="width: 40%;">Know the ground rules for safe behavior.</td>
+        </tr>
+        <tr>
+            <td style="width: 10%; text-align: center;">{% if visit.prep_risks_considered %}<span
+                    style="color: #2e7d32; font-size: 12pt;">&#10004;</span>{% endif %}</td>
+            <td style="width: 40%;">Know the procedures which would ensure safe working.</td>
+            <td style="width: 10%; text-align: center;">{% if visit.prep_checked_equip %}<span
+                    style="color: #2e7d32; font-size: 12pt;">&#10004;</span>{% endif %}</td>
+            <td style="width: 40%;">Apply injury and incident experience.</td>
+        </tr>
+        {% if visit.prep_other or visit.prep_other_comments %}
+        <tr>
+            <td style="width: 10%; text-align: center;"><span style="color: #2e7d32; font-size: 12pt;">&#10004;</span>
+            </td>
+            <td colspan="3">Other: {{ visit.prep_other_comments }}</td>
+        </tr>
+        {% endif %}
+    </table>
+
+    {% if visit.participants.exists %}
+    <h2>Participants</h2>
+    <ul>
+        {% for p in visit.participants.all %}
+        <li><strong>{{ p.name }}</strong> {% if p.role %}<span style="color:#666">({{ p.role }})</span>{% endif %}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h2>Observations & Actions</h2>
+    {% for obs in visit.observations.all %}
+    <div class="obs-container">
+        <h3>
+            <span class="badge badge-{{ obs.category }}">{{ obs.category }}</span>
+            #{{ obs.number }} - {{ obs.get_category_display }}
+        </h3>
+
+        <div class="obs-text">
+            {{ obs.text|linebreaks }}
+        </div>
+
+        <div class="actions-section">
+            <div style="font-weight:bold; margin-bottom:5px;">Action Items:</div>
+            {% for action in obs.actions.all %}
+            <div class="action-item">
+                <span class="label">[{{ action.get_action_type_display }}]</span>
+                {{ action.description }}
+                <br />
+                <span style="color:#666; font-size: 8pt;">
+                    Resp: {{ action.responsible.get_full_name|default:action.responsible.username }} |
+                    Status: {{ action.get_status_display }} |
+                    Due: {{ action.due_date|default:"-" }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% empty %}
+    <p>No observations recorded for this visit.</p>
+    {% endfor %}
+
+    <!-- Consolidated Photo Gallery with Pagination -->
+    {% for page in photo_pages %}
+    <div style="page-break-before: always;"></div>
+    <div style="background-color: #f5f5f5; padding: 10px; border-left: 5px solid #d32f2f; margin-bottom: 20px;">
+        <h2 style="margin: 0;">Photo Evidence Gallery (Page {{ forloop.counter }})</h2>
+    </div>
+
+    <table style="width: 100%; border: none;">
+        {% for row in page.rows %}
+        <tr>
+            {% for att in row %}
+            <td
+                style="width: {% if row|length == 1 %}100%{% elif row|length == 2 %}50%{% else %}33.3%{% endif %}; border: none; padding: 5px; text-align: center; vertical-align: middle;">
+                <div style="border: 1px solid #ddd; padding: 5px; background-color: #fff; margin-bottom: 5px;">
+                    {% if att.image %}
+                    <img src="{{ att.image.url }}"
+                        style="width: 95%; height: auto; max-height: {% if page.count == 1 %}650px{% elif page.count <= 2 %}450px{% else %}250px{% endif %};" />
+                    {% endif %}
+                </div>
+                {% if att.caption %}
+                <div style="font-size: 11pt; color: #333; margin-top: 5px; font-weight: bold;">{{ att.caption }}</div>
+                {% endif %}
+                <div style="font-size: 9pt; color: #777; margin-top: 2px;">
+                    {% if att.observation %}Observation #{{ att.observation.number }}{% elif att.action %}Action #{{
+                    att.action.id }}{% else %}Visit Attachment{% endif %}
+                </div>
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+    {% endfor %}
+
+    <div class="footer">
+        Generated by Safety Tour Platform on {% now "Y-m-d H:i" %}
+    </div>
+</body>
+
+</html>
